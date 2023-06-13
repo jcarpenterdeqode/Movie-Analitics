@@ -1,11 +1,11 @@
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import *
 from pyspark.sql.types import StructType, StructField, IntegerType, TimestampType
-from analytical_queries import find_top_10_movies
-
+from analytical_queries import find_top_10_movies, find_letest_released_movies
+from movie.spark_sql import create_tables
 
 if __name__ == '__main__':
-    spark = SparkSession.builder.appName('Example 1').master('local[3]').getOrCreate()
+    spark = SparkSession.builder.enableHiveSupport().appName('Example 1').master('local[3]').getOrCreate()
 
     # Define the schema for movies
     movie_schema = StructType([
@@ -68,3 +68,9 @@ if __name__ == '__main__':
     .groupBy("start_char").agg(count("*").alias("count"))
     movie_counts.show()
 
+    # find the letest movies
+    latest_movies = find_letest_released_movies(movie_df)
+    latest_movies.show(10, truncate=False)
+
+    # create Tables
+    create_tables(spark, movie_df, rating_df, user_df)
