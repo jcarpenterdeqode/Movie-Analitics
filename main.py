@@ -1,6 +1,8 @@
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import *
 from pyspark.sql.types import StructType, StructField, IntegerType, TimestampType
+from analytical_queries import find_top_10_movies
+
 
 if __name__ == '__main__':
     spark = SparkSession.builder.appName('Example 1').master('local[3]').getOrCreate()
@@ -47,5 +49,22 @@ if __name__ == '__main__':
     user_df.printSchema()
     user_df.show(truncate=False)
 
+    # Find top 10 most viewed movies
+    top_10_movies = find_top_10_movies(movie_df, rating_df)
+    top_10_movies.show(truncate= False)
 
+    # Find the distinct list of genre available
+
+    distinct_genre = movie_df.select('genre').distinct()
+    distinct_genre.show(truncate=False)
+
+
+    # Find the movie count based on the genre
+    movie_count = movie_df.groupBy("genre").agg(count("*").alias("movie Count"))
+    movie_count.show()
+
+    # Find the movies that start with numbers or latter
+    movie_counts = movie_df.withColumn("start_char", regexp_extract("Title", "^(\\d+|[A-Z])", 1)) \
+    .groupBy("start_char").agg(count("*").alias("count"))
+    movie_counts.show()
 
